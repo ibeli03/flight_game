@@ -1,4 +1,5 @@
 #python puolen API-yhteys
+#paljon puutteita ja avonaisia kysymyksiä xdd
 
 #importit
 from fastapi import FastAPI, Request
