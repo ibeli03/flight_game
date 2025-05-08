@@ -52,43 +52,43 @@ class CO2Manager:
         self.total_emissions = 0
 
     def calculate_distance(self, country1, country2):
-        def calculate_distance(self, country1, country2):
-            # Etäisyydet eri maiden välillä (kilometreinä)
-            distances = {
-                ("Suomi", "Italia"): 2200,
-                ("Suomi", "Espanja"): 2500,
-                ("Suomi", "Ruotsi"): 500,
-                ("Suomi", "Norja"): 600,
-                ("Suomi", "Tanska"): 1200,
-                ("Suomi", "Ranska"): 2200,
-                ("Suomi", "Saksa"): 1600,
-                ("Suomi", "Alankomaat"): 1600,
-                ("Suomi", "Englanti"): 1700,
-                ("Italia", "Espanja"): 1200,
-                ("Italia", "Ruotsi"): 1900,
-                ("Italia", "Ranska"): 700,
-                ("Italia", "Saksa"): 1000,
-                ("Italia", "Alankomaat"): 1300,
-                ("Italia", "Englanti"): 1400,
-                ("Espanja", "Ruotsi"): 2300,
-                ("Espanja", "Ranska"): 1200,
-                ("Espanja", "Saksa"): 1500,
-                ("Espanja", "Alankomaat"): 1600,
-                ("Espanja", "Englanti"): 1300,
-                ("Ruotsi", "Norja"): 500,
-                ("Ruotsi", "Tanska"): 600,
-                ("Ruotsi", "Ranska"): 1800,
-                ("Ruotsi", "Saksa"): 1200,
-                ("Ruotsi", "Alankomaat"): 1300,
-                ("Ruotsi", "Englanti"): 1500,
-                ("Ranska", "Saksa"): 500,
-                ("Ranska", "Alankomaat"): 400,
-                ("Ranska", "Englanti"): 300,
-                ("Saksa", "Alankomaat"): 200,
-                ("Saksa", "Englanti"): 600,
-                ("Alankomaat", "Englanti"): 350
-            }
+        # Etäisyydet eri maiden välillä (kilometreinä)
+        distances = {
+            ("Suomi", "Italia"): 2200,
+            ("Suomi", "Espanja"): 2500,
+            ("Suomi", "Ruotsi"): 500,
+            ("Suomi", "Norja"): 600,
+            ("Suomi", "Tanska"): 1200,
+            ("Suomi", "Ranska"): 2200,
+            ("Suomi", "Saksa"): 1600,
+            ("Suomi", "Alankomaat"): 1600,
+            ("Suomi", "Englanti"): 1700,
+            ("Italia", "Espanja"): 1200,
+            ("Italia", "Ruotsi"): 1900,
+            ("Italia", "Ranska"): 700,
+            ("Italia", "Saksa"): 1000,
+            ("Italia", "Alankomaat"): 1300,
+            ("Italia", "Englanti"): 1400,
+            ("Espanja", "Ruotsi"): 2300,
+            ("Espanja", "Ranska"): 1200,
+            ("Espanja", "Saksa"): 1500,
+            ("Espanja", "Alankomaat"): 1600,
+            ("Espanja", "Englanti"): 1300,
+            ("Ruotsi", "Norja"): 500,
+            ("Ruotsi", "Tanska"): 600,
+            ("Ruotsi", "Ranska"): 1800,
+            ("Ruotsi", "Saksa"): 1200,
+            ("Ruotsi", "Alankomaat"): 1300,
+            ("Ruotsi", "Englanti"): 1500,
+            ("Ranska", "Saksa"): 500,
+            ("Ranska", "Alankomaat"): 400,
+            ("Ranska", "Englanti"): 300,
+            ("Saksa", "Alankomaat"): 200,
+            ("Saksa", "Englanti"): 600,
+            ("Alankomaat", "Englanti"): 350
+        }
 
+        # Check distance for given pair
         distance = distances.get((country1, country2)) or distances.get((country2, country1))
         return distance
 
@@ -106,7 +106,6 @@ class CO2Manager:
         return player_stars * 100 >= self.total_emissions
 
     def calculate_emissions_cost(self, player_stars):
-
         emissions_covered = player_stars * 100
         emissions_to_pay = self.total_emissions - emissions_covered
         return emissions_to_pay
@@ -129,12 +128,10 @@ class Peli:
     def aloita(self):
         self.intro("Tervetuloa Lennä ja tiedä! -peliin, jossa opit lisää eri Euroopan maista!")
         self.intro("Tässä pelissä saat tähtiä oikein vastatuista kysymyksistä eri maista, joihin olet lentämässä.")
-        self.intro(
-            "Pelin lopussa sinulle kerrotaan montako tähteä, eli pistettä, olet kerännyt. Maksimi pistemäärä on 30.")
+        self.intro("Pelin lopussa sinulle kerrotaan montako tähteä, eli pistettä, olet kerännyt. Maksimi pistemäärä on 30.")
         self.intro("Oletko ymmärtänyt ohjeet? Paina enter aloittaaksesi!")
         input("")
-        self.intro(
-            "Olet Helsinki-Vantaan lentokentällä. Olet saanut tarpeeksesi Suomen kylmyydestä ja haluat vaihtaa maisemaa.")
+        self.intro("Olet Helsinki-Vantaan lentokentällä. Olet saanut tarpeeksesi Suomen kylmyydestä ja haluat vaihtaa maisemaa.")
         self.alusta_peli()
 
     def alusta_peli(self):
@@ -205,98 +202,97 @@ class Peli:
                 else:
                     print("Vastaus väärin.")
 
-            if oikeat_vastaukset > 0:
-                self.pelaaja.lisää_tähdet(oikeat_vastaukset)
-                self.pelaaja.lisää_vieraillut_maa(kohdemaa)
-                self.tallenna_tilanne(oikeat_vastaukset, kohdemaa)
+                    if oikeat_vastaukset > 0:
+                        self.pelaaja.lisää_tähdet(oikeat_vastaukset)
+                        self.pelaaja.lisää_vieraillut_maa(kohdemaa)
+                        self.tallenna_tilanne(oikeat_vastaukset, kohdemaa)
 
-                # Laskee CO2 päästöt
-                emissions = self.co2_manager.update_emissions(self.pelaaja.nykyinen_maa, kohdemaa)
-                print(f"CO2 päästöt matkasta: {emissions:.2f}g")
+                        # Laskee CO2 päästöt
+                        emissions = self.co2_manager.update_emissions(self.pelaaja.nykyinen_maa, kohdemaa)
+                        print(f"CO2 päästöt matkasta: {emissions:.2f}g")
 
-                # Meneekö yli?
-                if self.co2_manager.get_total_emissions() > self.co2_manager.CO2_THRESHOLD:
-                    print("CO2 päästöt ylittävät sallitun rajan!")
-                    print(f"Yhteensä CO2 päästöjä: {self.co2_manager.get_total_emissions():.2f}g")
+                        # Meneekö yli?
+                        if self.co2_manager.get_total_emissions() > self.co2_manager.CO2_THRESHOLD:
+                            print("CO2 päästöt ylittävät sallitun rajan!")
+                            print(f"Yhteensä CO2 päästöjä: {self.co2_manager.get_total_emissions():.2f}g")
 
-                    # Haluaako käyttää tähtiä
-                    if self.co2_manager.can_afford_emissions(self.pelaaja.tähdet):
-                        print("Sinulla on tarpeeksi tähtiä matkustuksen maksamiseen.")
-                        vastaus = input(
-                            f"Haluatko käyttää tähtiäsi päästöjen maksamiseen? Sinulla on {self.pelaaja.tähdet} tähteä. (Kyllä/Ei): ").strip().lower()
+                            # Haluaako käyttää tähtiä
+                            if self.co2_manager.can_afford_emissions(self.pelaaja.tähdet):
+                                print("Sinulla on tarpeeksi tähtiä matkustuksen maksamiseen.")
+                                vastaus = input(
+                                    f"Haluatko käyttää tähtiäsi päästöjen maksamiseen? Sinulla on {self.pelaaja.tähdet} tähteä. (Kyllä/Ei): ").strip().lower()
 
-                        if vastaus == 'kyllä':
-                            stars_used = int(input(
-                                f"Kuinka monta tähteä käytät maksamiseen (sinulla on {self.pelaaja.tähdet} tähteä)? "))
+                                if vastaus == 'kyllä':
+                                    stars_used = int(input(
+                                        f"Kuinka monta tähteä käytät maksamiseen (sinulla on {self.pelaaja.tähdet} tähteä)? "))
 
-                            emissions_to_pay = self.co2_manager.calculate_emissions_cost(stars_used)
-                            if emissions_to_pay <= 0:
-                                print("Tähtiä käytetty onnistuneesti! Voit jatkaa peliä.")
-                                self.pelaaja.vähennä_tähdet(stars_used)
+                                    emissions_to_pay = self.co2_manager.calculate_emissions_cost(stars_used)
+                                    if emissions_to_pay <= 0:
+                                        print("Tähtiä käytetty onnistuneesti! Voit jatkaa peliä.")
+                                        self.pelaaja.vähennä_tähdet(stars_used)
+                                    else:
+                                        print(
+                                            "Sinulla ei ole tarpeeksi tähtiä, et voi jatkaa peliä. Peli alkaa alusta.")
+                                        self.alusta_peli()
+                                else:
+                                    print("Et halunnut käyttää tähtiä päästöjen maksamiseen. Peli päättyy!")
+                                    self.alusta_peli()
                             else:
-                                print("Sinulla ei ole tarpeeksi tähtiä, et voi jatkaa peliä. Peli alkaa alusta.")
+                                print("Et voi maksaa päästöjäsi tähtiäsi käyttäen. Peli päättyy!")
                                 self.alusta_peli()
-                        else:
-                            print("Et halunnut käyttää tähtiä päästöjen maksamiseen. Peli päättyy!")
-                            self.alusta_peli()
+
                     else:
-                        print("Et voi maksaa päästöjäsi tähtiäsi käyttäen. Peli päättyy!")
-                        self.alusta_peli()
+                        print("\nEt vastannut yhteenkään kysymykseen oikein. Kone palaa lähtömaahan.")
 
-            else:
-                print("\nEt vastannut yhteenkään kysymykseen oikein. Kone palaa lähtömaahan.")
+            def tallenna_tilanne(self, oikeat_vastaukset, kohdemaa):
+                update_query = "UPDATE player_state SET tähdet = tähdet + %s"
+                self.cursor.execute(update_query, (oikeat_vastaukset,))
+                self.yhteys.commit()
 
-    def tallenna_tilanne(self, oikeat_vastaukset, kohdemaa):
-        update_query = "UPDATE player_state SET tähdet = tähdet + %s"
-        self.cursor.execute(update_query, (oikeat_vastaukset,))
-        self.yhteys.commit()
+                update_query = "UPDATE player_state SET nykyinen_maa = %s"
+                self.cursor.execute(update_query, (kohdemaa,))
+                self.yhteys.commit()
 
-        update_query = "UPDATE player_state SET nykyinen_maa = %s"
-        self.cursor.execute(update_query, (kohdemaa,))
-        self.yhteys.commit()
+                self.cursor.execute("SELECT vieraillut_maat FROM player_state")
+                result = self.cursor.fetchone()
 
-        self.cursor.execute("SELECT vieraillut_maat FROM player_state")
-        result = self.cursor.fetchone()
+                if result:
+                    vieraillut_maat = json.loads(result[0])
+                else:
+                    vieraillut_maat = []
 
-        if result:
-            vieraillut_maat = json.loads(result[0])
-        else:
-            vieraillut_maat = []
+                if kohdemaa not in vieraillut_maat:
+                    vieraillut_maat.append(kohdemaa)
+                    update_query = "UPDATE player_state SET vieraillut_maat = %s"
+                    self.cursor.execute(update_query, (json.dumps(vieraillut_maat),))
+                    self.yhteys.commit()
 
-        if kohdemaa not in vieraillut_maat:
-            vieraillut_maat.append(kohdemaa)
-            update_query = "UPDATE player_state SET vieraillut_maat = %s"
-            self.cursor.execute(update_query, (json.dumps(vieraillut_maat),))
-            self.yhteys.commit()
+            def pelaaja_loppu(self):
+                print("\nOnneksi olkoon! Olet vieraillut kaikissa maissa ja suorittanut pelin loppuun!")
+                self.cursor.execute("SELECT tähdet FROM player_state")
+                tulos = self.cursor.fetchone()
+                kokonaistähdet = tulos[0] if tulos else 0
+                print(f'Kokonaispistemääräsi: {kokonaistähdet} tähteä!')
+                print(f"Yhteensä CO2 päästöjä: {self.co2_manager.get_total_emissions():.2f}g")
+                self.cursor.close()
+                self.yhteys.close()
+                exit()
 
-    def pelaaja_loppu(self):
-        print("\nOnneksi olkoon! Olet vieraillut kaikissa maissa ja suorittanut pelin loppuun!")
-        self.cursor.execute("SELECT tähdet FROM player_state")
-        tulos = self.cursor.fetchone()
-        kokonaistähdet = tulos[0] if tulos else 0
-        print(f'Kokonaispistemääräsi: {kokonaistähdet} tähteä!')
-        print(f"Yhteensä CO2 päästöjä: {self.co2_manager.get_total_emissions():.2f}g")
-        self.cursor.close()
-        self.yhteys.close()
-        exit()
+        try:
+            yhteys = mysql.connector.connect(
+                host='localhost',
+                database='lentopeli',
+                user='user',
+                password='password',
+                autocommit=True,
+                collation='utf8mb4_unicode_ci'
+            )
 
+            pelaaja = Pelaaja("Player1")
+            peli = Peli(pelaaja, yhteys)
+            peli.aloita()
 
-try:
-        yhteys = mysql.connector.connect(
-            host='localhost',
-            database='lentopeli',
-            user='user',
-            password='password',
-            autocommit=True,
-            collation='utf8mb4_unicode_ci'
-        )
-
-        pelaaja = Pelaaja("Player1")
-        peli = Peli(pelaaja, yhteys)
-        peli.aloita()
-
-    except mysql.connector.Error as err:
-        print(f"Virhe tietokantaoperaatiossa: {err}")
-    except Exception as e:
-        print(f'Virhe pelin aikana: {e}')
-
+        except mysql.connector.Error as err:
+            print(f"Virhe tietokantaoperaatiossa: {err}")
+        except Exception as e:
+            print(f'Virhe pelin aikana: {e}')
