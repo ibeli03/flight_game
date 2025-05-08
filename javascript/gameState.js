@@ -1,4 +1,7 @@
 //pelitilan hallinta
+import React, { useState } from 'react'
+
+const [gameState, setGameState] = useState({})
 
 export const gameState= {
     currentCountry: null,
@@ -9,3 +12,4 @@ export const gameState= {
     extendedLimit: 0,  //kuinka paljon päästörajaa on nostettu ostamalla sitä tähdillä
     gameOver: false   //onko peli päättynyt
 };
+
