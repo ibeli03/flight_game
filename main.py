@@ -3,6 +3,7 @@ import time
 import json
 import random
 import math
+from weather_service import get_weather_for_country
 
 
 class Pelaaja:
@@ -44,72 +45,23 @@ class Kysmys:
 
 
 class CO2Manager:
-
-    EMISSION_FACTOR = 0.115  # grams / km
-    CO2_THRESHOLD = 2000  # Päästöraja grammoina
+    CO2_THRESHOLD = 3600  # kilogrammoina
 
     def __init__(self):
         self.total_emissions = 0
 
-    def calculate_distance(self, country1, country2):
-        def calculate_distance(self, country1, country2):
-            # Etäisyydet eri maiden välillä (kilometreinä)
-            distances = {
-                ("Suomi", "Italia"): 2200,
-                ("Suomi", "Espanja"): 2500,
-                ("Suomi", "Ruotsi"): 500,
-                ("Suomi", "Norja"): 600,
-                ("Suomi", "Tanska"): 1200,
-                ("Suomi", "Ranska"): 2200,
-                ("Suomi", "Saksa"): 1600,
-                ("Suomi", "Alankomaat"): 1600,
-                ("Suomi", "Englanti"): 1700,
-                ("Italia", "Espanja"): 1200,
-                ("Italia", "Ruotsi"): 1900,
-                ("Italia", "Ranska"): 700,
-                ("Italia", "Saksa"): 1000,
-                ("Italia", "Alankomaat"): 1300,
-                ("Italia", "Englanti"): 1400,
-                ("Espanja", "Ruotsi"): 2300,
-                ("Espanja", "Ranska"): 1200,
-                ("Espanja", "Saksa"): 1500,
-                ("Espanja", "Alankomaat"): 1600,
-                ("Espanja", "Englanti"): 1300,
-                ("Ruotsi", "Norja"): 500,
-                ("Ruotsi", "Tanska"): 600,
-                ("Ruotsi", "Ranska"): 1800,
-                ("Ruotsi", "Saksa"): 1200,
-                ("Ruotsi", "Alankomaat"): 1300,
-                ("Ruotsi", "Englanti"): 1500,
-                ("Ranska", "Saksa"): 500,
-                ("Ranska", "Alankomaat"): 400,
-                ("Ranska", "Englanti"): 300,
-                ("Saksa", "Alankomaat"): 200,
-                ("Saksa", "Englanti"): 600,
-                ("Alankomaat", "Englanti"): 350
-            }
-
-        distance = distances.get((country1, country2)) or distances.get((country2, country1))
-        return distance
-
-    def update_emissions(self, country1, country2):
-        distance = self.calculate_distance(country1, country2)
-        emissions = distance * self.EMISSION_FACTOR
-        self.total_emissions += emissions
-        return emissions
+    def update_emissions(self, amount):
+        self.total_emissions += amount
 
     def get_total_emissions(self):
         return self.total_emissions
 
-    def can_afford_emissions(self, player_stars):
-        # Each star represents 100g of CO2 emissions (example ratio)
-        return player_stars * 100 >= self.total_emissions
+    def is_over_limit(self):
+        return self.total_emissions > self.CO2_THRESHOLD
 
-    def calculate_emissions_cost(self, player_stars):
+    def increase_threshold(self, amount):
+        self.CO2_THRESHOLD += amount
 
-        emissions_covered = player_stars * 100
-        emissions_to_pay = self.total_emissions - emissions_covered
-        return emissions_to_pay
 
 
 class Peli:
@@ -129,12 +81,10 @@ class Peli:
     def aloita(self):
         self.intro("Tervetuloa Lennä ja tiedä! -peliin, jossa opit lisää eri Euroopan maista!")
         self.intro("Tässä pelissä saat tähtiä oikein vastatuista kysymyksistä eri maista, joihin olet lentämässä.")
-        self.intro(
-            "Pelin lopussa sinulle kerrotaan montako tähteä, eli pistettä, olet kerännyt. Maksimi pistemäärä on 30.")
+        self.intro("Pelin lopussa sinulle kerrotaan montako tähteä, eli pistettä, olet kerännyt. Maksimi pistemäärä on 30.")
         self.intro("Oletko ymmärtänyt ohjeet? Paina enter aloittaaksesi!")
         input("")
-        self.intro(
-            "Olet Helsinki-Vantaan lentokentällä. Olet saanut tarpeeksesi Suomen kylmyydestä ja haluat vaihtaa maisemaa.")
+        self.intro("Olet Helsinki-Vantaan lentokentällä. Olet saanut tarpeeksesi Suomen kylmyydestä ja haluat vaihtaa maisemaa.")
         self.alusta_peli()
 
     def alusta_peli(self):
@@ -148,39 +98,35 @@ class Peli:
         while True:
             self.play_round()
 
+
     def play_round(self):
-        # Haetaan vieraillut maat tietokannasta
         self.cursor.execute("SELECT vieraillut_maat FROM player_state")
         result = self.cursor.fetchone()
 
         if result:
             self.pelaaja.vieraillut_maat = json.loads(result[0])
 
-        # Haetaan kaikki maat
         self.cursor.execute("SELECT id, maa FROM airports")
         tulos = self.cursor.fetchall()
 
-        saatavilla_olevat_maat = sorted([x for x in tulos if x[1] not in self.pelaaja.vieraillut_maat],
-                                        key=lambda x: x[0])
+        saatavilla_maat = sorted([x for x in tulos if x[1] not in self.pelaaja.vieraillut_maat],
+                                 key=lambda x: x[0])
 
-        if not saatavilla_olevat_maat:
+        if not saatavilla_maat:
             self.pelaaja_loppu()
 
         print('\nValitse seuraava kohdemaa.')
-        for x in saatavilla_olevat_maat:
+        for x in saatavilla_maat:
             print(x)
 
         maa_id = int(input('\nAnna kohdemaata vastaava numero: '))
-        kohdemaa_query = "SELECT maa, nimi FROM airports WHERE id = %s"
-        self.cursor.execute(kohdemaa_query, (maa_id,))
+        self.cursor.execute("SELECT maa, nimi FROM airports WHERE id = %s", (maa_id,))
         rivit = self.cursor.fetchall()
 
         if rivit:
             kohdemaa, nimi = rivit[0]
             print(f'Olet matkalla maahan {kohdemaa}, kentälle {nimi}.')
-            self.pelaaja.nykyinen_maa = kohdemaa
 
-            oikeat_vastaukset = 0
             kysymykset_query = "SELECT kysymys, vaihtoehdot, oikea_vastaus FROM questions WHERE maa = %s"
             self.cursor.execute(kysymykset_query, (kohdemaa,))
             questions = self.cursor.fetchall()
@@ -188,9 +134,10 @@ class Peli:
             random.shuffle(questions)
             questions = questions[:3]
 
+            oikeat_vastaukset = 0
             for kysymys, vaihtoehdot, oikea_vastaus in questions:
                 kysymys_obj = Kysmys(kysymys, vaihtoehdot, oikea_vastaus)
-                kysymys_obj.esitä_kysymys()
+                kysymys_obj.esita_kysymys()
 
                 while True:
                     vastaus = input("Valitse oikea vaihtoehto (A/B/C): ").strip().upper()
@@ -206,45 +153,31 @@ class Peli:
                     print("Vastaus väärin.")
 
             if oikeat_vastaukset > 0:
+                print(f"Hyvin meni! Sait {oikeat_vastaukset} tähteä.")
                 self.pelaaja.lisää_tähdet(oikeat_vastaukset)
                 self.pelaaja.lisää_vieraillut_maa(kohdemaa)
                 self.tallenna_tilanne(oikeat_vastaukset, kohdemaa)
 
-                # Laskee CO2 päästöt
-                emissions = self.co2_manager.update_emissions(self.pelaaja.nykyinen_maa, kohdemaa)
-                print(f"CO2 päästöt matkasta: {emissions:.2f}g")
+                self.co2_manager.update_emissions(300)
 
-                # Meneekö yli?
-                if self.co2_manager.get_total_emissions() > self.co2_manager.CO2_THRESHOLD:
-                    print("CO2 päästöt ylittävät sallitun rajan!")
-                    print(f"Yhteensä CO2 päästöjä: {self.co2_manager.get_total_emissions():.2f}g")
-
-                    # Haluaako käyttää tähtiä
-                    if self.co2_manager.can_afford_emissions(self.pelaaja.tähdet):
-                        print("Sinulla on tarpeeksi tähtiä matkustuksen maksamiseen.")
-                        vastaus = input(
-                            f"Haluatko käyttää tähtiäsi päästöjen maksamiseen? Sinulla on {self.pelaaja.tähdet} tähteä. (Kyllä/Ei): ").strip().lower()
-
-                        if vastaus == 'kyllä':
-                            stars_used = int(input(
-                                f"Kuinka monta tähteä käytät maksamiseen (sinulla on {self.pelaaja.tähdet} tähteä)? "))
-
-                            emissions_to_pay = self.co2_manager.calculate_emissions_cost(stars_used)
-                            if emissions_to_pay <= 0:
-                                print("Tähtiä käytetty onnistuneesti! Voit jatkaa peliä.")
-                                self.pelaaja.vähennä_tähdet(stars_used)
-                            else:
-                                print("Sinulla ei ole tarpeeksi tähtiä, et voi jatkaa peliä. Peli alkaa alusta.")
-                                self.alusta_peli()
-                        else:
-                            print("Et halunnut käyttää tähtiä päästöjen maksamiseen. Peli päättyy!")
-                            self.alusta_peli()
-                    else:
-                        print("Et voi maksaa päästöjäsi tähtiäsi käyttäen. Peli päättyy!")
-                        self.alusta_peli()
-
+                if self.co2_manager.is_over_limit():
+                    self.kasittele_paastorajan_ylitys()
             else:
-                print("\nEt vastannut yhteenkään kysymykseen oikein. Kone palaa lähtömaahan.")
+                print("\nEt vastannut yhteenkään kysymykseen oikein.")
+
+                from weather_service import get_weather_for_country
+                saa = get_weather_for_country(kohdemaa)
+
+                if saa == "hyvä":
+                    print("Sää on hyvä – palaat edelliseen maahan ja voit valita uuden kohteen.")
+                    self.co2_manager.update_emissions(300)
+                    if self.co2_manager.is_over_limit():
+                        self.kasittele_paastorajan_ylitys()
+                else:
+                    print("Sää on huono – paluu ei onnistu. Yrität uudelleen samaan maahan.")
+                    self.co2_manager.update_emissions(300)
+                    if self.co2_manager.is_over_limit():
+                        self.kasittele_paastorajan_ylitys()
 
     def tallenna_tilanne(self, oikeat_vastaukset, kohdemaa):
         update_query = "UPDATE player_state SET tähdet = tähdet + %s"
@@ -280,23 +213,61 @@ class Peli:
         self.yhteys.close()
         exit()
 
+    def kasittele_paastorajan_ylitys(self):
+        print("\n⚠️ CO2-raja ylitetty!")
+        print(
+            f"Nykyiset päästöt: {self.co2_manager.get_total_emissions()} kg / {self.co2_manager.CO2_THRESHOLD} kg")
+        print(f"Sinulla on {self.pelaaja.tähdet} tähteä.")
+
+        if self.pelaaja.tähdet == 0:
+            print("Sinulla ei ole yhtään tähteä – peli päättyy.")
+            exit()
+
+        print("\nVoit jatkaa peliä käyttämällä tähtiä nostaaksesi CO2-rajaa:")
+        vaihtoehdot = []
+        if self.pelaaja.tähdet >= 1:
+            vaihtoehdot.append(("1", 1, 300))
+        if self.pelaaja.tähdet >= 3:
+            vaihtoehdot.append(("2", 3, 900))
+        if self.pelaaja.tähdet >= 5:
+            vaihtoehdot.append(("3", 5, 1500))
+
+        for koodi, tähdet, lisäys in vaihtoehdot:
+            print(f"{koodi}. Käytä {tähdet} tähteä → lisää {lisäys} kg päästötilaa")
+
+        print("0. Lopeta peli")
+
+        valinta = input("Valintasi: ").strip()
+
+        if valinta == "0":
+            print("Peli päättyy. Kiitos pelaamisesta!")
+            exit()
+
+        for koodi, tähdet, lisäys in vaihtoehdot:
+            if valinta == koodi:
+                self.pelaaja.vähennä_tähdet(tähdet)
+                self.co2_manager.increase_threshold(lisäys)
+                print(f"CO2-rajaa nostettiin {lisäys} kg. Uusi raja: {self.co2_manager.CO2_THRESHOLD} kg.")
+                return
+
+        print("Virheellinen valinta. Peli päättyy.")
+        exit()
 
 try:
-        yhteys = mysql.connector.connect(
-            host='localhost',
-            database='lentopeli',
-            user='user',
-            password='password',
-            autocommit=True,
-            collation='utf8mb4_unicode_ci'
-        )
+    yhteys = mysql.connector.connect(
+        host='localhost',
+        database='lentopeli',
+        user='user',
+        password='password',
+        autocommit=True,
+        collation='utf8mb4_unicode_ci'
+    )
 
-        pelaaja = Pelaaja("Player1")
-        peli = Peli(pelaaja, yhteys)
-        peli.aloita()
+    pelaaja = Pelaaja("Player1")
+    peli = Peli(pelaaja, yhteys)
+    peli.aloita()
 
-    except mysql.connector.Error as err:
-        print(f"Virhe tietokantaoperaatiossa: {err}")
-    except Exception as e:
-        print(f'Virhe pelin aikana: {e}')
-
+except mysql.connector.Error as err:
+    print(f"Virhe tietokantaoperaatiossa: {err}")
+except Exception as e:
+    print(f'Virhe pelin aikana: {e}')
