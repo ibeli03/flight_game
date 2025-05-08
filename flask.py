@@ -17,7 +17,7 @@ def connect_db():
 
 @app.route('/')
 def index():
-    return render_template('index.html')  # Renders the HTML page
+    return render_template('index.html')  
 
 @app.route('/start_game', methods=['POST'])
 def start_game():
