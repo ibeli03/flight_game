@@ -81,3 +81,4 @@ def submit(data: submitRequest):
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"Virhe vastausten tarkistamisessa."})
+
