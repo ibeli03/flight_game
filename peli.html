@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game: Lennä ja tiedä!</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React and ReactDOM from CDN -->
+  <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+
+  <!-- Your custom JavaScript for the game -->
+  <script type="text/javascript">
+    // Place your React game code here
+
+    const { useState, useEffect } = React;
+
+    function App() {
+      const [countries, setCountries] = useState([]); // list of countries
+      const [selectedCountry, setSelectedCountry] = useState(""); // selected country
+      const [questions, setQuestions] = useState([]); // questions for the selected country
+      const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // question index
+      const [userAnswers, setUserAnswers] = useState([]); // player answers
+      const [gameState, setGameState] = useState({
+        stars: 0,
+        co2: 0,
+        visitedCountries: [],
+        gameOver: false,
+      });
+
+      useEffect(() => {
+        const fetchCountries = async () => {
+          try {
+            const response = await fetch("http://localhost:8000/api/countries");
+            if (!response.ok) throw new Error("Maita ei saatu haettua");
+            const data = await response.json();
+            setCountries(data);
+          } catch (error) {
+            console.error("Virhe haettaessa: ", error);
+          }
+        };
+        fetchCountries();
+      }, []);
+
+      const handleCountrySelect = (country) => {
+        setSelectedCountry(country);
+        setCurrentQuestionIndex(0);
+        setUserAnswers([]);
+
+        fetch(`http://localhost:8000/api/questions/${country}`)
+          .then((res) => res.json())
+          .then((data) => setQuestions(data))
+          .catch((err) => console.error("Virhe kysymyksien haussa.", err));
+      };
+
+      const handleUserAnswer = (userAnswer) => {
+        const currentQuestion = questions[currentQuestionIndex];
+        fetch("http://localhost:8000/api/check_answer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question_id: currentQuestion.id,
+            userAnswer: userAnswer,
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            setUserAnswers((prev) => [...prev, data.correct]);
+
+            if (currentQuestionIndex < 2) {
+              setCurrentQuestionIndex((prev) => prev + 1);
+            } else {
+              handleQuestionResults([...userAnswers, data.correct]);
+            }
+          });
+      };
+
+      const handleQuestionResults = (answers) => {
+        const correctCount = answers.filter(Boolean).length;
+        const starsEarned = correctCount;
+        const passed = correctCount >= 1;
+
+        let newCO2 = gameState.co2 + 300;
+        let updatedState = { ...gameState, co2: newCO2 };
+
+        if (passed) {
+          updatedState.stars += starsEarned;
+          updatedState.visitedCountries.push(selectedCountry);
+        }
+
+        if (updatedState.co2 > 3600 && updatedState.stars === 0) {
+          updatedState.gameOver = true;
+        }
+
+        setGameState(updatedState);
+        setSelectedCountry("");
+        setQuestions([]);
+        setCurrentQuestionIndex(0);
+        setUserAnswers([]);
+      };
+
+      if (gameState.gameOver) {
+        return (
+          <div>
+            <h1>GAME OVER</h1>
+            <p>CO2 päästöraja ylitetty.</p>
+            <p>Tähdet: {gameState.stars}</p>
+          </div>
+        );
+      }
+
+      return (
+        <div>
+          <h1>Lennä ja tiedä!</h1>
+          <p>CO₂: {gameState.co2} / 3600 kg</p>
+          <p>Tähdet: {gameState.stars} / 30</p>
+
+          {selectedCountry === "" ? (
+            <div>
+              <h2>Valitse maa:</h2>
+              <ul>
+                {countries
+                  .filter((c) => !gameState.visitedCountries.includes(c))
+                  .map((country) => (
+                    <li key={country}>
+                      <button onClick={() => handleCountrySelect(country)}>
+                        {country}
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          ) : questions.length > 0 ? (
+            <div>
+              <h2>{selectedCountry}</h2>
+              <p>{questions[currentQuestionIndex].text}</p>
+              {questions[currentQuestionIndex].options.map((opt, i) => (
+                <button key={i} onClick={() => handleUserAnswer(opt)}>
+                  {opt}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p>Ladataan kysymyksiä...</p>
+          )}
+        </div>
+      );
+    }
+
+    // Rendering the React App
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
+
